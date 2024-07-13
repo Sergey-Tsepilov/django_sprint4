@@ -15,7 +15,7 @@ def test_gitignore():
         raise AssertionError(
             "При чтении файла `.gitignore` в корне проекта возникла ошибка:\n"
             f"{type(e).__name__}: {e}"
-        )
+        ) from e
     assert "sent_emails/" in gitignore, (
         "Убедитесь, что директория `sent_emails/`, служащая для хранения"
         " e-mail сообщений, указана в файле `.gitignore` в корне проекта."
