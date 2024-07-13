@@ -68,7 +68,7 @@ def post_with_another_category(
 
 @pytest.fixture
 def post_of_another_author(
-    mixer: Mixer, user, another_user,  published_location, published_category
+    mixer: Mixer, user, another_user, published_location, published_category
 ):
     assert user.id != another_user.id
     return mixer.blend(
