@@ -26,10 +26,10 @@ class ManageProfileLinksException(Exception):
 def test_custom_err_handlers(client):
     try:
         from blogicum import urls as blogicum_urls
-    except Exception:
+    except Exception as error:
         raise AssertionError(
             "Убедитесь, в головном файле с маршрутами нет ошибок."
-        )
+        ) from error
     urls_src_squashed = squash_code(inspect.getsource(blogicum_urls))
     if "django.contrib.auth.urls" not in urls_src_squashed:
         raise AssertionError(
@@ -77,15 +77,18 @@ def test_custom_err_handlers(client):
     }
     for template in auth_templates:
         try:
-            fpath: Path = Path(settings.TEMPLATES_DIR) / "registration" / template
+            fpath: Path = Path(settings.TEMPLATES_DIR) / \
+                "registration" / template
         except Exception as e:
             raise AssertionError(
                 'Убедитесь, что переменная TEMPLATES_DIR в настройках проекта '
-                'является строкой (str) или объектом, соответствующим path-like интерфейсу '
+                'является строкой (str) или объектом, соответствующим '
+                'path-like интерфейсу '
                 '(например, экземпляром pathlib.Path). '
-                f'При операции Path(settings.TEMPLATES_DIR) / "registration", возникла ошибка: {e}'
-            )
-        frpath: Path = fpath.relative_to(settings.BASE_DIR)
+                f'При операции Path(settings.TEMPLATES_DIR) / "registration", '
+                f'возникла ошибка: {e}'
+            ) from e
+        frpath: Path = fpath.relative_to(settings.BASE_DIR)  # type: ignore
         assert os.path.isfile(
             fpath.resolve()
         ), f"Убедитесь, что файл шаблона `{frpath}` существует."
@@ -105,8 +108,8 @@ def test_profile(
     )
     try:
         response = user_client.get("/profile/this_is_unexisting_user_name/")
-    except User.DoesNotExist:
-        raise AssertionError(status_code_not_404_err_msg)
+    except User.DoesNotExist as error:
+        raise AssertionError(status_code_not_404_err_msg) from error
 
     assert response.status_code == HTTPStatus.NOT_FOUND, (
         status_code_not_404_err_msg)
@@ -140,12 +143,12 @@ def test_profile(
         edit_url, change_pwd_url = try_get_profile_manage_urls(
             user_content, anothers_same_page_content, ignore_urls={user_url}
         )
-    except ManageProfileLinksException:
+    except ManageProfileLinksException as error:
         raise AssertionError(
             "Убедитесь, что на странице профиля пользователя ссылки для"
             " редактирования профиля и изменения пароля видны только владельцу"
             " профиля, но не другим пользователям."
-        )
+        ) from error
 
     unlogged_diff_urls = get_extra_urls(
         base_content=unlogged_same_page_content, extra_content=user_content
@@ -225,10 +228,12 @@ def get_extra_urls(
         urls_start_with="", start_lineix=-1, end_lineix=-1
     )
     user_links = set(
-        find_links_between_lines(extra_content, **find_links_kwargs)
+        find_links_between_lines(
+            extra_content, **find_links_kwargs)  # type: ignore
     )
     anothers_page_links = set(
-        find_links_between_lines(base_content, **find_links_kwargs)
+        find_links_between_lines(
+            base_content, **find_links_kwargs)  # type: ignore
     )
     diff_urls = [
         x.get("href")
