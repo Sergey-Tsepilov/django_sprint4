@@ -5,7 +5,7 @@ from typing import Tuple, Any, Type, List, Union
 
 import django.test.client
 import pytest
-import pytz
+import pytz  # type: ignore
 from django.db.models import TextField, DateTimeField, ForeignKey, Model
 from django.forms import BaseForm
 from django.utils import timezone
@@ -90,7 +90,7 @@ def create_comment_creation_forms(
             f" {creation_tester.of_which_form} достаточно заполнить следующие"
             f" поля: {list(forms_to_create[0].data.keys())}. При валидации"
             f" формы возникли следующие ошибки: {e}"
-        )
+        ) from e
 
     if return_single_form:
         return forms_to_create[0]
@@ -196,7 +196,7 @@ def test_comment(
         user_client=user_client,
         another_user_client=another_user_client,
         unlogged_client=unlogged_client,
-        **update_props,
+        **update_props,  # type: ignore
     )
 
     item_to_delete_adapter = item_to_edit_adapter
@@ -208,7 +208,7 @@ def test_comment(
         item_adapter=item_to_delete_adapter,
     ).test_delete_item(
         qs=item_to_delete_adapter.item_cls.objects.all(),
-        delete_url_addr=delete_url_addr,
+        delete_url_addr=delete_url_addr,  # type: ignore
     )
 
     status_404_on_edit_deleted_comment_err_msg = (
@@ -217,20 +217,20 @@ def test_comment(
     )
     try:
         response = user_client.get(edit_url[0])
-    except CommentModel.DoesNotExist:
+    except CommentModel.DoesNotExist as error:
         raise AssertionError(
             status_404_on_edit_deleted_comment_err_msg
-        )
+        ) from error
     assert response.status_code == HTTPStatus.NOT_FOUND, (
         status_404_on_edit_deleted_comment_err_msg)
 
     def _test_delete_unexisting_comment(err_msg):
         try:
             response = user_client.get(delete_url_addr)
-        except CommentModel.DoesNotExist:
+        except CommentModel.DoesNotExist as error:
             raise AssertionError(
                 err_msg
-            )
+            ) from error
         assert response.status_code == HTTPStatus.NOT_FOUND, err_msg
 
     _test_delete_unexisting_comment(
