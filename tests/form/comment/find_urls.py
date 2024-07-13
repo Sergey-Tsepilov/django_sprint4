@@ -75,12 +75,12 @@ def find_edit_and_delete_urls(
                 x == get_request_status_codes[0]
                 for x in get_request_status_codes
             )
-        except NoReverseMatch:
+        except NoReverseMatch as error:
             raise AssertionError(
                 "Убедитесь, что в контекст шаблонов страниц удаления "
                 "и редактирования комментария "
                 "передаётся объект комментария."
-            )
+            ) from error
         except Exception:
             return False
 
