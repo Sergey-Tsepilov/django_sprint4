@@ -71,7 +71,7 @@ with SafeImportFromContextManager(
 ):
     try:
         from blog.models import Category, Location, Post  # noqa:F401
-    except RuntimeError:
+    except RuntimeError as error:
         registered_apps = set(app.name for app in apps.get_app_configs())
         need_apps = {"blog": "blog", "pages": "pages"}
         if not set(need_apps.values()).intersection(registered_apps):
@@ -85,7 +85,7 @@ with SafeImportFromContextManager(
                 raise AssertionError(
                     "Убедитесь, что зарегистрировано приложение "
                     f"{need_app_name}"
-                )
+                ) from error
 
 pytest_plugins = [
     "fixtures.posts",
@@ -138,8 +138,8 @@ def get_post_list_context_key(
 ):
     try:
         post_response = user_client.get(page_url)
-    except Exception:
-        raise AssertionError(page_load_err_msg)
+    except Exception as error:
+        raise AssertionError(page_load_err_msg) from error
     assert post_response.status_code == HTTPStatus.OK, page_load_err_msg
     post_list_key = None
     for key, val in dict(post_response.context).items():
@@ -205,7 +205,7 @@ def PostModel() -> Type[Model]:
             " Убедитесь, что в файле `blog/models.py` нет ошибок и что в нём"
             " объявлена модель Post. Сообщение об"
             f" ошибке:\n{type(e).__name__}: {e}"
-        )
+        ) from e
     return Post
 
 
@@ -218,7 +218,7 @@ def CommentModel() -> Model:
             "Убедитесь, что в файле `blog/models.py` нет ошибок. "
             "При импорте `models.py` возникла ошибка:\n"
             f"{type(e).__name__}: {e}"
-        )
+        ) from e
     models_src_code = getsource(models)
     models_src_clean = re.sub("#.+", "", models_src_code)
     class_defs = re.findall(
