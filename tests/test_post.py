@@ -7,7 +7,7 @@ from typing import Tuple, Type, List
 
 import django.test.client
 import pytest
-import pytz
+import pytz  # type: ignore
 from django.db.models import Model, ImageField, DateTimeField
 from django.forms import BaseForm
 from django.http import HttpResponse
@@ -40,10 +40,10 @@ from test_edit import _test_edit
         ("pub_date", DateTimeField, {
             'auto_now_add': False
         }, None, None, None, (
-                 "Проверьте, что в модели Post в атрибуте pub_date параметр "
-                 "`auto_now_add` не установлен или имеет значение `False`. "
-                 "В ином случае станет невозможно публиковать посты "
-                 "задним числом и отложенные посты.")),
+            "Проверьте, что в модели Post в атрибуте pub_date параметр "
+            "`auto_now_add` не установлен или имеет значение `False`. "
+            "В ином случае станет невозможно публиковать посты "
+            "задним числом и отложенные посты.")),
     ],
     ids=["`image` field", "`pub_date` field"]
 )
@@ -134,7 +134,7 @@ def test_post(
     )
     delete_tester.test_delete_item(
         qs=item_to_delete_adapter.item_cls.objects.all(),
-        delete_url_addr=del_url_addr,
+        delete_url_addr=del_url_addr,  # type: ignore
     )
     try:
         AuthorisedSubmitTester(
@@ -142,9 +142,9 @@ def test_post(
             test_response_cbk=SubmitTester.get_test_response_404_cbk(
                 err_msg=delete_tester.nonexistent_obj_error_message
             ),
-        ).test_submit(url=del_url_addr, data={})
-    except Post.DoesNotExist:
-        raise AssertionError(del_unexisting_status_404_err_msg)
+        ).test_submit(url=del_url_addr, data={})  # type: ignore
+    except Post.DoesNotExist as error:
+        raise AssertionError(del_unexisting_status_404_err_msg) from error
 
     err_msg_unexisting_status_404 = (
         "Убедитесь, что при обращении к странице "
@@ -154,8 +154,8 @@ def test_post(
         response = user_client.get(f"/posts/{item_to_delete_adapter.id}/")
         assert response.status_code == HTTPStatus.NOT_FOUND, (
             err_msg_unexisting_status_404)
-    except Post.DoesNotExist:
-        raise AssertionError(err_msg_unexisting_status_404)
+    except Post.DoesNotExist as error:
+        raise AssertionError(err_msg_unexisting_status_404) from error
 
     edit_status_code_not_404_err_msg = (
         "Убедитесь, что при обращении к странице редактирования"
@@ -163,8 +163,8 @@ def test_post(
     )
     try:
         response = user_client.get(edit_url[0])
-    except Post.DoesNotExist:
-        raise AssertionError(edit_status_code_not_404_err_msg)
+    except Post.DoesNotExist as error:
+        raise AssertionError(edit_status_code_not_404_err_msg) from error
 
     assert response.status_code == HTTPStatus.NOT_FOUND, (
         edit_status_code_not_404_err_msg)
@@ -304,7 +304,7 @@ def _test_create_items(
             f" {creation_tester.of_which_form} достаточно заполнить следующие"
             f" поля: {list(forms_to_create[0].data.keys())}. При валидации"
             f" формы возникли следующие ошибки: {e}"
-        )
+        ) from e
     response_on_created, created_items = creation_tester.test_create_several(
         forms=forms_to_create[1:], qs=PostModel.objects.all()
     )
