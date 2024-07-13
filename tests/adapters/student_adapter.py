@@ -54,12 +54,12 @@ class StudentModelAdapter(ModelAdapter):
         )
         try:
             item_field_name = item_field_names[adapter_field_key]
-        except KeyError:
+        except KeyError as error:
             raise AssertionError(
                 f"В модели `{self.ItemModel.__name__}` создайте поле типа"
                 f" `{adapter_field_key[0]}`, которое"
                 f" {self.AdapterFields.field_description[name]}."
-            )
+            ) from error
         return getattr(self._item_or_cls, item_field_name)
 
     def __setattr__(self, key, value):
