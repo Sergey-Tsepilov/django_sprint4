@@ -30,11 +30,11 @@ def test_csrf_failure_view():
 
     try:
         response = csrf_failure_view(request)
-    except Exception:
+    except Exception as error:
         raise AssertionError(
             f"Убедитесь, что view-функция `{csrf_failure_view_setting}`"
             " работает без ошибок."
-        )
+        ) from error
     else:
         csrf_status = 403
         assert response.status_code == csrf_status, (
@@ -56,21 +56,23 @@ def test_custom_err_handlers(client, user_client):
         except Exception as e:
             raise AssertionError(
                 'Убедитесь, что переменная TEMPLATES_DIR в настройках проекта '
-                'является строкой (str) или объектом, соответствующим path-like интерфейсу '
+                'является строкой (str) или объектом, соответствующим '
+                'path-like интерфейсу '
                 '(например, экземпляром pathlib.Path). '
-                f'При операции конкатенации settings.TEMPLATES_DIR / "pages", возникла ошибка: {e}'
-            )
+                f'При операции конкатенации settings.TEMPLATES_DIR / "pages", '
+                f'возникла ошибка: {e}'
+            ) from e
         assert os.path.isfile(
             fpath.resolve()
         ), f"Убедитесь, что файл шаблона `{fpath}` существует."
 
     try:
         from blogicum.urls import handler500
-    except Exception:
+    except Exception as error:
         raise AssertionError(
             "Убедитесь, что в головном файле с маршрутами нет ошибок и что в"
             " нём задан обработчик ошибки 500."
-        )
+        ) from error
 
     def check_handler_exists(handler_path):
         module_name, func_name = handler_path.rsplit('.', 1)
@@ -91,10 +93,10 @@ def test_custom_err_handlers(client, user_client):
 
     try:
         from pages import views as pages_views
-    except Exception:
+    except Exception as error:
         raise AssertionError(
             "Убедитесь, что в файле `pages/views.py` нет ошибок."
-        )
+        ) from error
 
     for status, fname in err_pages_vs_file_names.items():
         assert fname in inspect.getsource(pages_views), (
