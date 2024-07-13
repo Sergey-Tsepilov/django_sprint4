@@ -1,6 +1,6 @@
 asgiref==3.5.2
 attrs==22.2.0
-Django==3.2.16
+Django==3.2.25
 django-bootstrap5==22.2
 Faker==12.0.1
 flake8==5.0.4
@@ -24,4 +24,5 @@ sqlparse==0.4.3
 tomli==2.0.1
 yapf==0.32.0
 beautifulsoup4==4.11.2
-
+django_debug_toolbar==3.8.1
+black==23.12.1
